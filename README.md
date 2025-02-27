@@ -1,106 +1,128 @@
-# CDP Support Agent Chatbot
+# Google Sheets Clone
 
-A chatbot that answers "how-to" questions related to four Customer Data Platforms (CDPs): Segment, mParticle, Lytics, and Zeotap.
+This project is a web application that mimics the user interface and core functionalities of Google Sheets, with a focus on mathematical and data quality functions, data entry, and key UI interactions.
 
 ## Features
 
-- Answer "how-to" questions about CDP platforms
-- Extract information from documentation
-- Handle variations in questions
-- Cross-CDP comparisons
-- Advanced "how-to" questions
+### Spreadsheet Interface
+- Google Sheets-like UI with toolbar, formula bar, and cell structure
+- Drag functionality for selections
+- Cell dependencies with formula evaluation
+- Support for basic cell formatting (bold, italics, font size, color)
+- Ability to add, delete, and resize rows and columns
 
-## Tech Stack
+### Mathematical Functions
+- SUM: Calculates the sum of a range of cells
+- AVERAGE: Calculates the average of a range of cells
+- MAX: Returns the maximum value from a range of cells
+- MIN: Returns the minimum value from a range of cells
+- COUNT: Counts the number of cells containing numerical values in a range
 
-### Frontend
+### Data Quality Functions
+- TRIM: Removes leading and trailing whitespace from a cell
+- UPPER: Converts the text in a cell to uppercase
+- LOWER: Converts the text in a cell to lowercase
+- REMOVE_DUPLICATES: Removes duplicate rows from a selected range
+- FIND_AND_REPLACE: Allows users to find and replace specific text within a range of cells
+
+### Data Entry and Validation
+- Support for various data types (numbers, text, dates)
+- Basic data validation for formulas
+
+## Tech Stack and Data Structures
+
+### Tech Stack
 - **React**: For building the user interface
-- **TypeScript**: For type safety
+- **TypeScript**: For type safety and better developer experience
+- **Zustand**: For state management
+- **Immer**: For immutable state updates
 - **Tailwind CSS**: For styling
 - **Vite**: For fast development and building
-- **Lucide React**: For icons
-- **React Markdown**: For rendering markdown responses
 
-### Data Structure
+### Data Structures
 
-The application uses the following data structures:
+#### Cell Model
+The core data structure is the `Cell` type, which represents a single cell in the spreadsheet:
 
-1. **Message Interface**:
-   ```typescript
-   interface Message {
-     id: string;
-     role: 'user' | 'assistant';
-     content: string;
-     timestamp: Date;
-   }
-   ```
+```typescript
+type Cell = {
+  id: string;        // Unique identifier (row:col format)
+  value: CellValue;  // The actual value (string, number, null)
+  formula: string;   // Formula string if the cell contains a formula
+  display: string;   // Formatted display value
+  style: CellStyle;  // Styling information
+};
+```
 
-2. **Chat State**:
-   ```typescript
-   interface ChatState {
-     messages: Message[];
-     isLoading: boolean;
-     error: string | null;
-   }
-   ```
+#### Sheet Data
+The sheet data is stored as an object map for O(1) access to any cell:
 
-3. **CDP Information**:
-   ```typescript
-   interface CDPInfo {
-     name: string;
-     description: string;
-     docsUrl: string;
-     logo: string;
-   }
-   ```
+```typescript
+type SheetData = {
+  [key: string]: Cell;
+};
+```
 
-### Document Indexing
+This allows for efficient cell lookup by ID without having to traverse a 2D array.
 
-In a production environment, this application would use a document indexing approach:
+#### Selection Model
+The selection model tracks the current selection state:
 
-1. **Document Preprocessing**:
-   - Scrape and extract content from CDP documentation
-   - Split content into chunks
-   - Create embeddings for each chunk
+```typescript
+type Selection = {
+  start: { row: number; col: number };  // Selection start
+  end: { row: number; col: number };    // Selection end
+  active: { row: number; col: number }; // Active cell within selection
+};
+```
 
-2. **Vector Database**:
-   - Store document chunks and their embeddings
-   - Enable semantic search capabilities
+### Formula Evaluation
+Formulas are evaluated using a custom parser that:
+1. Identifies function calls and their arguments
+2. Resolves cell references to their values
+3. Evaluates mathematical expressions
+4. Handles ranges (e.g., A1:B5)
 
-3. **Retrieval Process**:
-   - Convert user query to embedding
-   - Find semantically similar documents
-   - Retrieve relevant information
+### Virtualization
+The grid implements a simple virtualization technique to render only the visible cells, improving performance for large spreadsheets.
 
-4. **Response Generation**:
-   - Use retrieved documents to generate accurate responses
-   - Format responses with proper citations
+### Undo/Redo
+The application maintains a history stack of sheet states to support undo and redo operations.
 
-For this demo, we're using mock responses based on keywords in the questions.
+## Usage
 
-## Why This Tech Stack?
+### Basic Usage
+- Click on a cell to select it
+- Double-click to edit a cell
+- Type a value or formula (starting with =)
+- Use the formula bar to edit the current cell
+- Use the toolbar to format cells
 
-- **React + TypeScript**: Provides a robust foundation with type safety
-- **Tailwind CSS**: Enables rapid UI development with utility classes
-- **Vite**: Offers fast development experience and optimized builds
-- **React Markdown**: Allows for rich text formatting in responses
+### Using Formulas
+- Start with an equals sign (=)
+- Examples:
+  - `=SUM(A1:A5)` - Sum values in range A1 to A5
+  - `=AVERAGE(B1:B10)` - Average values in range B1 to B10
+  - `=MAX(C1:C20)` - Find maximum value in range C1 to C20
+  - `=MIN(D1:D15)` - Find minimum value in range D1 to D15
+  - `=COUNT(E1:E30)` - Count numeric values in range E1 to E30
+  - `=TRIM(A1)` - Remove whitespace from cell A1
+  - `=UPPER(B1)` - Convert cell B1 to uppercase
+  - `=LOWER(C1)` - Convert cell C1 to lowercase
 
-## Future Improvements
+### Data Operations
+- Select a range and use the "Remove Duplicates" button to remove duplicate rows
+- Use "Find & Replace" to search and replace text in the selected range
 
-1. **Real Document Indexing**: Implement actual document scraping and indexing
-2. **Vector Database**: Add a vector database for semantic search
-3. **LLM Integration**: Connect to an LLM for more natural responses
-4. **User Feedback Loop**: Add ability for users to rate responses
-5. **Multi-language Support**: Add support for multiple languages
-6. **Conversation History**: Persist conversation history
-7. **Authentication**: Add user authentication for personalized experiences
+## Development
 
-## Getting Started
+### Running the Project
+```bash
+npm install
+npm run dev
+```
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Start the development server: `npm run dev`
-4. Build for production: `npm run build`
-
-## License
-
-MIT 
+### Building for Production
+```bash
+npm run build
+```
